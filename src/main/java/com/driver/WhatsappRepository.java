@@ -13,7 +13,7 @@ public class WhatsappRepository {
     HashMap<Group, List<Message>> groupMessageMap=new HashMap<>();
     HashMap<Message, User> senderMap=new HashMap<>();
 
-    static int groupCount=0;
+     int groupCount=0;
     static  int messageId=0;
 
     public String createUser (String name,String mobileNo) throws Exception {
@@ -69,8 +69,12 @@ public class WhatsappRepository {
              List<User>userList=groupUserDb.get(group);
              boolean userFound=false;
              for (User user:userList){
-                 userFound=true;
-                 break;
+                 if(user.equals(sender))
+                 {
+                     userFound=true;
+                     break;
+                 }
+
              }
              if(userFound){
                  senderMap.put(message,sender);
@@ -88,29 +92,25 @@ public class WhatsappRepository {
       //Throw "Approver does not have rights" if the approver is not the current admin of the group
       //Throw "User is not a participant" if the user is not a part of the group
       //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
-        if(groupUserDb.containsKey(group)){
-            if (approver.equals(adminMap.get(group))){
-                List<User>list=groupUserDb.get(group);
-                Boolean flag=false;
-                for(User t:list){
-                    if(t.equals(user)){
-                        flag=true;
-                    }
-                }
-                if(flag==false){
-                    throw new Exception("User is not a participant");
-
-                }
-                adminMap.put(group,user.getName());
-                return "SUCCESS";
-
-            }else{
-                new Exception("Approver does not have rights");
-            }
-        }else{
-            new Exception("Group does not exist");
-        }
-        return null;
+       if(adminMap.containsKey(group)){
+         if(adminMap.get(group).equals(approver)){
+             List<User>participants=groupUserDb.get(group);
+             boolean userFound=false;
+             for (User participant:participants){
+                 if (participant.equals(user)){
+                     userFound=true;
+                      break;
+                 }
+             }
+             if (userFound){
+                 adminMap.put(group,user.getName());
+                 return "SUCCESS";
+             }
+             throw new Exception("User is not a participant");
+         }
+         throw new Exception("Approver does not have rights");
+       }
+       throw new Exception("Group does not exist");
   }
     public int removeUser(User user) throws Exception{
         //This is a bonus problem and does not contain any marks
