@@ -9,7 +9,7 @@ public class WhatsappRepository {
 
     HashMap<String,User>userDb=new HashMap<>();
     HashMap<Group, List<User>>groupUserDb=new HashMap<>();
-    HashMap<Group,String>adminMap=new HashMap<>();
+    HashMap<Group,User>adminMap=new HashMap<>();
     HashMap<Group, List<Message>> groupMessageMap=new HashMap<>();
     HashMap<Message, User> senderMap=new HashMap<>();
 
@@ -37,21 +37,19 @@ public class WhatsappRepository {
         //If createGroup is called for these userLists in the same order, their group names would be "Group 1", "Evan", and "Group 2" respectively.
 
        public Group createGroup(List<User> users){
-        Group group=new Group();
-           if(users.size()==2){
-             group.setName(users.get(1).getName());
+           if(users.size() == 2) {
+               Group group = new Group(users.get(1).getName(), 2);
+               adminMap.put(group,users.get(0));
+               groupUserDb.put(group,users);
+               groupMessageMap.put(group,new ArrayList<Message>());
+               return group;
            }
-           else{
-               groupCount++;
-               String groupName="Group count"+groupCount;
-                group.setName(groupName);
-                group.setNumberOfParticipants(users.size());
-
-
-           }
+           this.groupCount += 1;
+           Group group =  new Group(new String("Group "+this.groupCount),users.size());
+           adminMap.put(group,users.get(0));
            groupUserDb.put(group,users);
-           adminMap.put(group,users.get(0).getName());
-           return  group;
+           groupMessageMap.put(group,new ArrayList<Message>());
+           return group;
        }
     public   int createMessage(String content){
 
@@ -65,7 +63,7 @@ public class WhatsappRepository {
         //Throw "Group does not exist" if the mentioned group does not exist
         //Throw "You are not allowed to send message" if the sender is not a member of the group
         //If the message is sent successfully, return the final number of messages in that group.
-         if(groupUserDb.containsKey(group)){
+         if(adminMap.containsKey(group)){
              List<User>userList=groupUserDb.get(group);
              boolean userFound=false;
              for (User user:userList){
@@ -92,25 +90,25 @@ public class WhatsappRepository {
       //Throw "Approver does not have rights" if the approver is not the current admin of the group
       //Throw "User is not a participant" if the user is not a part of the group
       //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
-       if(adminMap.containsKey(group)){
-         if(adminMap.get(group).equals(approver)){
-             List<User>participants=groupUserDb.get(group);
-             boolean userFound=false;
-             for (User participant:participants){
-                 if (participant.equals(user)){
-                     userFound=true;
+      if(adminMap.containsKey(group)){
+          if(adminMap.get(group).equals(approver)){
+              List<User> participants = groupUserDb.get(group);
+              Boolean userFound = false;
+              for(User participant: participants){
+                  if(participant.equals(user)){
+                      userFound = true;
                       break;
-                 }
-             }
-             if (userFound){
-                 adminMap.put(group,user.getName());
-                 return "SUCCESS";
-             }
-             throw new Exception("User is not a participant");
-         }
-         throw new Exception("Approver does not have rights");
-       }
-       throw new Exception("Group does not exist");
+                  }
+              }
+              if(userFound){
+                  adminMap.put(group, user);
+                  return "SUCCESS";
+              }
+              throw new Exception("User is not a participant");
+          }
+          throw new Exception("Approver does not have rights");
+      }
+      throw new Exception("Group does not exist");
   }
     public int removeUser(User user) throws Exception{
         //This is a bonus problem and does not contain any marks
