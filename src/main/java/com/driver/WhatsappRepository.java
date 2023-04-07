@@ -14,7 +14,7 @@ public class WhatsappRepository {
     HashMap<Message, User> senderMap=new HashMap<>();
 
      int groupCount=0;
-    static  int messageId=0;
+     int messageId=0;
 
     public String createUser (String name,String mobileNo) throws Exception {
         String key = mobileNo;
